@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+import csv
+import bisect
 
 def load_data(path):
     """
@@ -18,6 +19,28 @@ def load_data(path):
     :return: Lista dwuelementowych krotek, pierwszym elementem jest ngram, drugim
     ilość wystąpień ngramu
     """
+    file=open(path,"r",encoding='utf-8')
+    r=csv.reader(file,dialect=csv.unix_dialect)
+    ngram=[]
+    cz=[]
+    for line in r:
+        ngram.append(line[0])
+        cz.append(int(line[1]))
+    return (ngram,cz)
+        
+def binary_search(seq, t):
+    min = 0
+    max = len(seq) - 1
+    while True:
+        if max < min:
+            return -1
+        m = (min + max) // 2
+        if seq[m] < t:
+            min = m + 1
+        elif seq[m] > t:
+            max = m - 1
+        else:
+            return m
 
 
 def suggester(input, data):
@@ -29,9 +52,6 @@ def suggester(input, data):
     :param list data: Data jest krotką zawierającą dwie listy, w pierwszej liście
                       zawarte są n-gramy w drugiej ich częstotliwości.
                       Częstotliwość n-gramu data[0][0] jest zawarta w data[0][1]
-
-                      ** UWAGA ZMIANA**: Dane są sortowane po częstotliwości, a
-                      te z równą częstotliwością w kolejności alfabetycznej.
 
     :return: Listę która zawiera krotki. Pierwszym elementem krotki jest litera,
              drugim prawdopodobieństwo jej wystąpienia. Lista jest posortowana
@@ -78,3 +98,39 @@ def suggester(input, data):
      ('e', 0.07352941176470588),
      ('i', 0.014705882352941176)]
     """
+    start=bisect.bisect_left(data[0],input)
+    #stop=bisect.bisect_right(data[0],input)
+    flag=True
+    n=start
+    stop=n
+    l=len(input)
+    while flag:
+        stop=n
+        n+=1
+        if data[0][n][0:l]!=input:
+            flag=False
+    w={}
+    suma=0
+    if(start==stop): return []
+    for i in range(start,stop+1):
+        if data[0][i][l] in w.keys():
+            w[data[0][i][l]]+=data[1][i]
+        else:
+            w[data[0][i][l]]=data[1][i]
+        suma+=data[1][i]
+        
+    for key in w.keys():
+        #print(w[key])
+        #print()
+        #print(suma)
+        w[key]=w[key]/suma
+
+    sorted_list=sorted(w.items(),key=lambda x:x[1], reverse=True)
+    return sorted_list
+        
+#path="enwiki-20140903-pages-articles_part_3.xml.csv"
+#wynik=load_data(path)
+#w=suggester("ąęćś", wynik)
+#print(w)
+    
+    

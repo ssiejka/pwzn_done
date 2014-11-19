@@ -8,7 +8,9 @@
 import io
 import bz2
 import re
+import csv
 from xml.dom.pulldom import parse, START_ELEMENT
+from collections import OrderedDict
 
 link_re = re.compile("\[\[([^\[\]\|]+)(?:\|[^\]]+)?\]\]")
 
@@ -90,15 +92,44 @@ def generate_ngrams(contents, ngram_len=7):
 
     :return: Funkcja zwraca słownik n-gram -> ilość wystąpień
     """
+    result={}
+    flag=0
+    for tekst in contents.__next__():
+        flag+=1
+        if(flag%2==0):
+            N=len(tekst)
+            for i in range(N-ngram_len):
+##                print(tekst[i:i+ngram_len])
+                if(result.keys() is not tekst[i:i+ngram_len]):
+                    result[tekst[i:i+ngram_len]]=1
+                else:
+                    result[tekst[i:i+ngram_len]]+=1
+    return result
 
 
 def save_ngrams(out_file, contents):
     """
-    Funkcja która (tylko) zapisuje n-gramy do pliku.
+    Funkcja działa tak jak `generate_ngrams` ale zapisuje wyniki do pliku
+    out_file. Może wykorzystywać generate_ngrams!
 
     Plik ma format csv w dialekcie ``csv.unix_dialect`` i jest posortowany
     względem zawartości n-grama.
 
-    :param dict contents: Słownik z n-gramami
+    :param dict ngram_dict: Słownik z n-gramami
     :param str out_file: Plik do którego n-gramy zostaną zapisane
     """
+    wynik=generate_ngrams(contents)
+    out=open(out_file,'w',encoding='utf-8')
+    w=csv.writer(out,dialect=csv.unix_dialect)
+    sorted_dict=OrderedDict(sorted(wynik.items()))
+    for key in sorted_dict.keys():
+        w.writerow([key,sorted_dict[key]])
+    out.close()
+    
+    
+    
+
+
+#w=iter_over_contents("/home/angelika/Dokumenty/Python/tasks/zaj3/enwiki-20140903-pages-articles_part_0.xml.bz2")
+#print(generate_ngrams(w,5))
+#save_ngrams("/home/angelika/Dokumenty/Python/tasks/zaj3/wynik.csv",w)

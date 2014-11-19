@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import csv
 
 def merge(path1, path2, out_file):
     """
@@ -25,10 +25,37 @@ def merge(path1, path2, out_file):
     Najlepsza implementacja nie wymaga ma złożoność pamięciową ``O(1)``.
     Podpowiedź: merge sort. Nie jest to trywialne zadanie, ale jest do zrobienia.
     """
+    file1=open(path1,"r",encoding='utf-8')
+    r=csv.reader(file1,dialect=csv.unix_dialect)
+    dane1={}
+    for line in r:
+        dane1[line[0]]=int(line[1])
+    file1.close()
+    
+    file2=open(path2,"r",encoding='utf-8')
+    r2=csv.reader(file2,dialect=csv.unix_dialect)
+    flag=False
+    for line in r2:
+        for key in dane1.keys():
+            if(line[0]==key):
+                dane1[key]+=int(line[1])
+            else:
+                flag=True
+        if(flag):
+            dane1[line[0]]=int(line[1])
+            flag=False
+    out=open(out_file,'w',encoding='utf-8')
+    w=csv.writer(out,dialect=csv.unix_dialect)
+    sorted_dict=OrderedDict(sorted(dane1.items(),key=lambda x:x[0]))
+    for key in sorted_dict.keys():
+        w.writerow([key,sorted_dict[key]])
+    out.close()
+    file2.close()
+    
 
 if __name__ == '__main__':
 
     merge(
-        '/opt/pwzn/zaj3/enwiki-20140903-pages-articles_part_0.xmlascii.csv',
-        '/opt/pwzn/zaj3/enwiki-20140903-pages-articles_part_1.xmlascii.csv',
-        '/tmp/mergeout.csv')
+        '/home/angelika/Dokumenty/Python/tasks/zaj3/enwiki-20140903-pages-articles_part_0.xmlascii.csv',
+        '/home/angelika/Dokumenty/Python/tasks/zaj3/enwiki-20140903-pages-articles_part_1.xmlascii.csv',
+        '/home/angelika/Dokumenty/Python/tasks/zaj3/mergeout.csv')
